@@ -1,13 +1,21 @@
-express = require('express');
+const express = require('express');
+const mongoose = require('mongoose');
 router = express.Router();
 
+mongoose.connect('mongodb://localhost/playground')
+    .then(()=> console.log('Connected to MongoDB...'))
+    .catch(err => console.log(new Error('Could not connect to mongo db', err)))
 
-const genres =[
-    { id:1, name:'horror'},
-    { id:2, name:'comedy'},
-    { id:3, name:'romance'},
+const genreSchema = new mongoose.Schema({
 
-]
+    name: {
+        type: String,
+        enum:['Action','Horror','Romance']
+    }
+
+});
+
+const Genre = mongoose.model('Genre', genreSchema);
 
 
 router.get('/', (req,res) => {
@@ -18,44 +26,78 @@ router.get('/', (req,res) => {
 
 router.get('/api/genres', (req,res) => {
 
-    res.send(genres);
+   async function getAllGenres(){
+
+        const genres = await Genre
+            .find();
+        
+
+        res.send(genres);
+
+   } 
+   getAllGenres();
+   
 
 });
 
 router.get('/api/genres/:id', (req,res) => {
 
-    const genre = genres.find(g => g.id === parseInt(req.params.id));
+    async function getGenre(){
+        const result = await Genre
+            .find({_id:req.params.id});
 
-    res.send(genre);
+        res.send(genre);
+    }
+    getGenre();
 
 });
 
 
 router.put('/api/genres/:id', (req,res) => {
 
+    async function putGenre(){
 
-    const genre = genres.find(g => g.id === parseInt(req.params.id));
+        const result = await Genre.updateOne({_id:req.params.id});
 
-    genre.name = req.body.name;
-
-
-    res.send(genre);
+        console.log(result);
 
 
+        res.send(result);
+
+    }   
+    putGenre();
 
 });
 
 router.post('/api/genres', (req,res) => {
 
+    
 
-    const genre = {
+    async function createGenre(){
+        
+        const genre = new Genre({
 
-        id:genres.length + 1,
-        name:req.body.name
+            name:req.body.name
+        
+        });
+
+        try{
+
+            const result = await genre.save();
+            console.log(genre);
+    
+        }catch(ex){
+        
+            for (field in ex.errors){
+                console.log(ex.errors[field].message);
+            }
+    
+        }
+        res.send(genre);
     }
+   
 
-    genres.push(genre);
-    res.send(genre);
+    createGenre();
 
 
 
@@ -63,14 +105,24 @@ router.post('/api/genres', (req,res) => {
 
 router.delete('/api/genres/:id', (req,res) => {
 
-    const genre = genres.find(g =>g.id === parseInt(req.params.id));
+    
 
-    const index  = genres.indexOf(genre);
+    async function deleteGenre(){
 
-    genres.splice(index,1);
-    res.send(genre);
+        const result = await Genre.deleteOne({_id:req.params.id});
 
+        console.log(result);
 
+        res.send(result);
+
+    }
+
+    deleteGenre();
+    
 });
+
+
+
+
 
 module.exports = router;
