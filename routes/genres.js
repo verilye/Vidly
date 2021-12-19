@@ -1,128 +1,61 @@
+const {Genre}= require('../models/genre');
 const express = require('express');
 const mongoose = require('mongoose');
-router = express.Router();
+const router = express.Router();
 
-mongoose.connect('mongodb://localhost/playground')
-    .then(()=> console.log('Connected to MongoDB...'))
-    .catch(err => console.log(new Error('Could not connect to mongo db', err)))
+router.get('/', async (req,res) => {
 
-const genreSchema = new mongoose.Schema({
-
-    name: {
-        type: String,
-        enum:['Action','Horror','Romance']
-    }
+    const result = await Genre.find();
+    res.send(result);
 
 });
 
-const Genre = mongoose.model('Genre', genreSchema);
+router.get('/:id', async (req,res) => {
 
-
-router.get('/', (req,res) => {
-
-    res.send('Health Check');
-
-});
-
-router.get('/api/genres', (req,res) => {
-
-   async function getAllGenres(){
-
-        const genres = await Genre
-            .find();
-        
-
-        res.send(genres);
-
-   } 
-   getAllGenres();
-   
-
-});
-
-router.get('/api/genres/:id', (req,res) => {
-
-    async function getGenre(){
-        const result = await Genre
-            .find({_id:req.params.id});
-
-        res.send(genre);
-    }
-    getGenre();
-
-});
-
-
-router.put('/api/genres/:id', (req,res) => {
-
-    async function putGenre(){
-
-        const result = await Genre.updateOne({_id:req.params.id});
-
-        console.log(result);
-
-
+        const result = await Genre.find({_id:req.params.id});
         res.send(result);
 
-    }   
-    putGenre();
-
 });
 
-router.post('/api/genres', (req,res) => {
 
+router.put('/:id', async (req,res) => {
     
+    const genre = await Genre.findByIdAndUpdate(req.params.id, { name: req.body.name }, {
+        new: true
+      });
+      
+      res.send(genre);
+   
+});
 
-    async function createGenre(){
-        
-        const genre = new Genre({
+router.post('/', async (req,res) => {
 
-            name:req.body.name
-        
-        });
+    const genre = new Genre({name:req.body.name});
 
-        try{
+    try{
 
-            const result = await genre.save();
-            console.log(genre);
+        const result = await genre.save();
+
+    }catch(ex){
     
-        }catch(ex){
-        
-            for (field in ex.errors){
-                console.log(ex.errors[field].message);
-            }
-    
+        for (field in ex.errors){
+            console.log(ex.errors[field].message);
         }
-        res.send(genre);
-    }
-   
 
-    createGenre();
+    }
+    
+    res.send(genre.name);
 
 
 
 });
 
-router.delete('/api/genres/:id', (req,res) => {
+router.delete('/:id', async (req,res) => {
 
-    
-
-    async function deleteGenre(){
-
-        const result = await Genre.deleteOne({_id:req.params.id});
-
-        console.log(result);
-
-        res.send(result);
-
-    }
-
-    deleteGenre();
+    const result = await Genre.deleteOne({_id:req.params.id});
+    res.send(result);
     
 });
-
-
-
 
 
 module.exports = router;
