@@ -30,7 +30,9 @@ router.put('/:id', async (req,res) => {
 
 router.post('/', async (req,res) => {
 
-    const genre = new Genre({name:req.body.name});
+    const { error } = validateGenre(req.body);
+
+    let genre = new Genre({name:req.body.name});
 
     try{
 

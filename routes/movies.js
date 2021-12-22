@@ -43,7 +43,7 @@ router.post('/', async (req,res) => {
     
     try{
     
-        const result = await movie.save();
+         await movie.save();
     
     }catch(ex){
     
