@@ -1,13 +1,18 @@
+const auth = require('../middleware/auth');
+const admin = require('../middleware/admin');
 const {Genre}= require('../models/genre');
 const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 
+
+
 router.get('/', async (req,res) => {
-
-    const result = await Genre.find();
-    res.send(result);
-
+   
+        const result = await Genre.find().sort('name');
+        res.send(result);
+    
+   
 });
 
 router.get('/:id', async (req,res) => {
@@ -15,7 +20,7 @@ router.get('/:id', async (req,res) => {
         const result = await Genre.find({_id:req.params.id});
         res.send(result);
 
-});
+}) ;
 
 
 router.put('/:id', async (req,res) => {
@@ -28,31 +33,21 @@ router.put('/:id', async (req,res) => {
    
 });
 
-router.post('/', async (req,res) => {
+router.post('/', auth,  async (req,res) => {
 
     const { error } = validateGenre(req.body);
 
     let genre = new Genre({name:req.body.name});
 
-    try{
+    const result = await genre.save();
 
-        const result = await genre.save();
-
-    }catch(ex){
     
-        for (field in ex.errors){
-            console.log(ex.errors[field].message);
-        }
-
-    }
     
     res.send(genre.name);
 
-
-
 });
 
-router.delete('/:id', async (req,res) => {
+router.delete('/:id',[auth, admin], async (req,res) => {
 
     const result = await Genre.deleteOne({_id:req.params.id});
     res.send(result);
